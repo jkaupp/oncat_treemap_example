@@ -3,7 +3,7 @@ library(purrr)
 library(readxl)
 library(tools)
 library(treemap)
-
+library(RColorBrewer)
 
 
 files <- list.files("data", full.names = TRUE, pattern = "LO_V2")
@@ -30,16 +30,17 @@ data <- map_df(sheets, ~read_excel(files, sheet = .x) %>% mutate(sheet = .x)) %>
   mutate_each(funs(toTitleCase), au, concept, verb)
 
 
-au.colors <- rev(RColorBrewer::brewer.pal(5, "Set1"))
+au.colors <- rev(brewer.pal(5, "Set1"))
 
 # Treemap ----
 
 build_treemap <- function(x) {
   
   discipline <- unique(x$discipline)
+  
   level <- unique(x$level)
   
-  filename <- sprintf("./graphics/treemaps/%s - %s AU-Concept-Verb Treemap2.png", level, discipline)
+  filename <- sprintf("images/%s - %s AU-Concept-Verb Treemap2.png", level, discipline)
   
   
   tree_data <- x %>%
