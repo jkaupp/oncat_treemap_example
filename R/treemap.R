@@ -1,21 +1,29 @@
+# package dependencies ----
 library(tidyverse)
 library(purrr)
 library(readxl)
 library(tools)
 library(treemap)
 library(RColorBrewer)
+library(here)
 
 
-files <- list.files("data", full.names = TRUE, pattern = "LO_V2")
+# Paths to data; filenames and sheets ----
+path <- file.path(here(), "data")
+
+files <- list.files(path, full.names = TRUE, pattern = "LO_V2")
 
 sheets <- excel_sheets(files)[!grepl("Bloom's",excel_sheets(files))]
 
 bloom_sheet <-  excel_sheets(files)[grepl("Bloom's",excel_sheets(files))]
 
+
+# Read the blooms levels ----
 blooms_factor <- read_excel(files, sheet = bloom_sheet, col_names = FALSE) %>% 
   set_names(c("verb", "bloom_level")) %>% 
   mutate(verb = tolower(verb))
 
+# Read all the data from files; tidy and categorize accordingly ----
 data <- map_df(sheets, ~read_excel(files, sheet = .x) %>% mutate(sheet = .x)) %>% 
   separate(sheet, c("level","discipline"), sep = "-") %>% 
   mutate(level = ifelse(level %in% c("Q","UofT","Con"), "University", "College")) %>% 
@@ -30,10 +38,10 @@ data <- map_df(sheets, ~read_excel(files, sheet = .x) %>% mutate(sheet = .x)) %>
   mutate_each(funs(toTitleCase), au, concept, verb)
 
 
+# Set color palette for Treemap ----
 au.colors <- rev(brewer.pal(5, "Set1"))
 
-# Treemap ----
-
+# Treemap function to produce final graphics ----
 build_treemap <- function(x) {
   
   discipline <- unique(x$discipline)
@@ -73,6 +81,8 @@ build_treemap <- function(x) {
   
   
 }
+
+# Iterate over the level/discipline pairings in the data, creating a treemap for each
 
 data %>% 
   split(list(.$level, .$discipline),drop = TRUE) %>% 

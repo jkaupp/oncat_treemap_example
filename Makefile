@@ -1,2 +1,2 @@
 oncat_treemap:
-	cd R;R CMD BATCH treemap.R
+	R CMD BATCH R/treemap.R
